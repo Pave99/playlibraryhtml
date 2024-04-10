@@ -1,7 +1,12 @@
+
 # playlibraryhtml
 -	Fetches launcher icons and screenshots of downloaded Play Store apps 
 -	Sorts apps by download time
 -	Creates a html file with apps and their corresponding images
+
+#
+![preview](html.png)
+
 
 ## Requirements:
 
