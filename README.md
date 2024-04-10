@@ -4,6 +4,7 @@ Fetches launcher icons and screenshots of downloaded Play Store apps
 ## Requirements:
 
 Python 3.10.6 (may work with other versions too)
+
 Library.json file from [Google takeout](https://takeout.google.com/)
 
 ## How-to
