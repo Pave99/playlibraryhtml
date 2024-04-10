@@ -2,7 +2,6 @@ import os
 import json
 import time
 import requests
-from bs4 import BeautifulSoup
 from tqdm import tqdm
 from datetime import datetime
 from google_play_scraper import app, search
@@ -68,8 +67,10 @@ def get_app_img_apkpure(app_name): # XXX: this function needs refactoring/cleani
         print("package name check failed")
     
     icon_div = driver.find_element(By.CLASS_NAME, "apk_info")
-    icon = icon_div.find_element(By.TAG_NAME,"img")
-    iconsrc=icon.get_attribute("src")
+    icon = icon_div.find_element(By.TAG_NAME,"img").get_attribute("src")
+    title_div = driver.find_element(By.CLASS_NAME, "title_link")
+    title = title_div.find_element(By.TAG_NAME, "h1").text
+
     try:
         scrnshot_div = driver.find_element(By.CLASS_NAME, "b")
         scrnshot = scrnshot_div.find_element(By.TAG_NAME,"a")
@@ -77,7 +78,7 @@ def get_app_img_apkpure(app_name): # XXX: this function needs refactoring/cleani
     except NoSuchElementException:
         print("package " + app_name + " doesn't have screenshots")
         driver.close()
-        return(iconsrc,None)
+        return(icon,None,title)
     driver.close()
     #soup = BeautifulSoup(html.content, "lxml")
     #print(soup)
@@ -89,7 +90,7 @@ def get_app_img_apkpure(app_name): # XXX: this function needs refactoring/cleani
         #parse2 = BeautifulSoup(html2.text)
         #for link in parse2.find_all("a",id="download_link"):
         #    download_link = link["href"]
-    return (iconsrc,scrnshotsrc)
+    return (icon,scrnshotsrc,title)
 
 
 
@@ -137,6 +138,8 @@ request_delay = 0.3  # Adjust this value as needed
 
 session = requests.Session()
 retries = 3
+title_readable=""
+titlelist = []
 
 total_apps = len(sorted_data)
 with tqdm(total=total_apps) as pbar:
@@ -145,7 +148,7 @@ with tqdm(total=total_apps) as pbar:
     icon_url=""
     for app_item in sorted_data:  # Rename the variable to avoid conflict
         title = app_item['libraryDoc']['doc']['title']
-        
+
         # Check if image file already exists
         if not image_exists(title):
             # Use the title as package name if it starts with a lowercase letter
@@ -162,6 +165,9 @@ with tqdm(total=total_apps) as pbar:
                     apkpure = get_app_img_apkpure(package_name)
                     if (apkpure is not None):
                         icon_url = apkpure[0]
+                        apptitle = apkpure[2]
+                        titlelist.append(package_name)
+                        titlelist.append(apptitle)
                         if (screenshot_url is not None):
                             screenshot_url = apkpure[1]
                     #print(icon_url)
@@ -213,6 +219,7 @@ with tqdm(total=total_apps) as pbar:
 
             else:
                 print(f"No package name found for app: {title}")
+
         # Update progress bar
         pbar.update(1)
 
@@ -234,6 +241,7 @@ with open('apps_with_icons.html', 'w', encoding='utf-8') as html_file:
             title = title.replace('/', '_').replace(':', '_').replace('|', '_').replace('?', '_')
             
             if image_exists(title):
+
                 html_file.write('<style>')
                 html_file.write('.app-container {')
                 html_file.write('    display: flex;')
@@ -245,13 +253,25 @@ with open('apps_with_icons.html', 'w', encoding='utf-8') as html_file:
                 html_file.write('}')
                 html_file.write('</style>')
 
-                html_file.write('<div class="app-container">')
-                html_file.write(f'<div><img src="icon/{title}.png" alt="{title}" width="96" height="96"><span>{title}</span></div>')
-                html_file.write(f'<div><img src="scrnshot/{title}.png" alt="{title}_screenshot" width="512" height=""><p>{acquisitiontime_readable}</p></div>')
-                html_file.write('</div>')
+                if title[0].islower() and '.' in title and ' ' not in title:
+                    for i in range(len(titlelist)):
+                        if titlelist[i] == title:
+                            title_readable = titlelist[i + 1]
+                            break
+                    
+                    html_file.write('<div class="app-container">')
+                    html_file.write(f'<div><img src="icon/{title}.png" alt="{title}" width="96" height="96"><span>{title_readable}</span></div>')
+                    html_file.write(f'<div><img src="scrnshot/{title}.png" alt="{title}_screenshot" width="512" height=""><p>{acquisitiontime_readable}</p></div>')
+                    html_file.write('</div>') 
+                else:                     
+                        
+                    html_file.write('<div class="app-container">')
+                    html_file.write(f'<div><img src="icon/{title}.png" alt="{title}" width="96" height="96"><span>{title}</span></div>')
+                    html_file.write(f'<div><img src="scrnshot/{title}.png" alt="{title}_screenshot" width="512" height=""><p>{acquisitiontime_readable}</p></div>')
+                    html_file.write('</div>')
             else:
                 print(f"Image file not found for app: {title}")
-        except (TypeError) as e:
+        except (TypeError) as e: 
             print("No acquisition time found")
 
        
