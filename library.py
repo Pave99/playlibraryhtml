@@ -80,16 +80,6 @@ def get_app_img_apkpure(app_name): # XXX: this function needs refactoring/cleani
         driver.close()
         return(icon,None,title)
     driver.close()
-    #soup = BeautifulSoup(html.content, "lxml")
-    #print(soup)
-    #for i in soup.findAll("a", class_="first-info"):
-    #    print(i)
-    #    a_url = i["href"]
-        #html2 = requests.get(a_url)
-
-        #parse2 = BeautifulSoup(html2.text)
-        #for link in parse2.find_all("a",id="download_link"):
-        #    download_link = link["href"]
     return (icon,scrnshotsrc,title)
 
 
@@ -118,10 +108,8 @@ def image_exists(title):
     if os.path.exists(filename) and os.path.exists(filename_scr):
         return True
     else:
-        #print(filename)
-        #print(filename_scr)
         return False
-        #return True
+
 
 # Open the JSON file containing app data with UTF-8 encoding
 with open('Library.json', 'r', encoding='utf-8') as file:
@@ -186,9 +174,6 @@ with tqdm(total=total_apps) as pbar:
                             time.sleep(5)  # Wait for a moment before retrying
                             print("Failed to download image after retries.")
 
-                    #response = requests.get(icon_url)
-                    #response = session.get(icon_url)
-                    #if response.status_code == 200:
                     title = title.replace('/', '_').replace(':', '_').replace('|', '_').replace('?', '_')
                     with open(f'icon/{title}.png', 'wb') as img_file:
                          img_file.write(response.content)
@@ -205,9 +190,6 @@ with tqdm(total=total_apps) as pbar:
                             time.sleep(5)  # Wait for a moment before retrying
                             print("Failed to download image after retries.")
 
-                    #response = requests.get(screenshot_url)
-                    #response = session.get(screenshot_url)
-                    #if response.status_code == 200:
                     title = title.replace('/', '_').replace(':', '_').replace('|', '_').replace('?', '_')
                     with open(f'scrnshot/{title}.png', 'wb') as img_file:
                         img_file.write(response.content)
